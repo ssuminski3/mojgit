@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace mojgit
 {
@@ -6,7 +7,8 @@ namespace mojgit
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            //ToDo Dynamiczne zmienianie śćieżki przez odpalanie programu w danych ścieżkach
+            FileManager fileManager = new FileManager("C:\\Users\\sebas\\OneDrive\\Pulpit\\TestowyProjektmojgita\\");
         }
     }
 }

@@ -14,17 +14,13 @@ namespace mojgit
         public FileManager(string path)
         {
             this.path = path;
-            CopyDirectory(path, path + ".mojgit\\legacy_code");
         }
         
         private void CopyDirectory(string sourceDir, string destinationDir)
         {
             //Console.WriteLine(sourceDir);
             if (sourceDir == path + ".mojgit")
-            {
-                //Console.WriteLine("STOP");
                 return;
-            }
 
             if (!Directory.Exists(destinationDir))
             {
@@ -78,6 +74,33 @@ namespace mojgit
                 }
             }
             return possiblyChangedFiles;
+        }
+    
+        public void commitFiles()
+        {
+            CopyDirectory(path, path + ".mojgit\\legacy_code");
+        }
+        
+        public string getPath()
+        {
+            return path;
+        }
+        
+        public string[] getAllFiles(string p)
+        {
+            List<string> files = new List<string>();
+
+            foreach(string f in Directory.GetFiles(p))
+            {
+                files.Add(f);
+            }
+
+            foreach(string d in Directory.GetDirectories(p))
+            {
+                getAllFiles(d);
+            }
+
+            return files.ToArray();
         }
     }
 }

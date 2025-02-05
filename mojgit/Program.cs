@@ -13,10 +13,16 @@ namespace mojgit
             FileManager fileManager = new FileManager(path);
             List<string> comparableFiles = fileManager.getPossiblyChangedFiles(path, path + ".mojgit\\legacy_code\\");
             Adder adder = new Adder();
-            adder.CompareDirectories(comparableFiles);
-            adder.DisplayChanges();
-            adder.ParseToJSON(path);
-            adder.DisplayChanges();
+            //adder.CompareDirectories(comparableFiles);
+            //adder.DisplayChanges();
+            //adder.ParseToJSON(path);
+            //adder.DisplayChanges();
+            Brancher brancher = new Brancher(fileManager);
+            brancher.createBranch("main");
+
+            Commiter commiter = new Commiter(fileManager);
+            commiter.commit("main", "Powinno działać", "0.1");
+
         }
     }
 }

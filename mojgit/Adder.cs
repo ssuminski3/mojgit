@@ -6,17 +6,6 @@ using System.Text.Encodings.Web;
 
 namespace mojgit
 {
-    public struct ChangedLines
-    {
-        public string line { get; set; }
-        public int number { get; set; }
-        public bool added { get; set; } // true if added, false if removed
-    }
-    public struct FileChanges
-    {
-        public string fileName { get; set; }
-        public ChangedLines[] changes { get; set; }
-    }
 
     class Adder
     {
@@ -78,7 +67,6 @@ namespace mojgit
             Console.WriteLine(files.ToString());
             var options = new JsonSerializerOptions
             {
-                // Use an encoder that doesn't escape HTML characters
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
             string json = JsonSerializer.Serialize(files, options);

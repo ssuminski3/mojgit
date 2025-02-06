@@ -36,16 +36,15 @@ namespace mojgit
             };
         }
 
-        public void commit(string name, string message, string commitName)
+        public void commit(string branchName, string message, string commitName)
         {
             List<Branch> branches = new List<Branch>();
-            string path = fileManager.getPath() + ".mojgit\\main.json";
+
+            int branchIndex = 0;
+
+            Brancher brancher = new Brancher(fileManager);
+            (branches, branchIndex) = brancher.findBranch(branchName);
             
-            Branch[] b = JsonSerializer.Deserialize<Branch[]>(File.ReadAllText(path));
-            branches = b.ToList<Branch>();
-
-            int branchIndex = Array.FindIndex(branches.ToArray(), br => br.name == name);
-
             List<Commit> commitList = new List<Commit>();
             if(branches[branchIndex].commits != null)
             {
@@ -59,7 +58,7 @@ namespace mojgit
             {
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
-            File.WriteAllText(path, JsonSerializer.Serialize(branches.ToArray(), options));
+            File.WriteAllText(fileManager.getPath() + ".mojgit\\main.json", JsonSerializer.Serialize(branches.ToArray(), options));
         }
     }
 }

@@ -9,7 +9,7 @@ namespace mojgit
         public bool added { get; set; } // true if added, false if removed
     }
 
-    public struct FileChanges
+    public class FileChanges
     {
         public string fileName { get; set; }
         public ChangedLines[] changes { get; set; }

@@ -29,5 +29,17 @@ namespace mojgit
 
             File.WriteAllText(path, JsonSerializer.Serialize(branches.ToArray()));
         }
+        public (List<Branch>, int) findBranch(string name)
+        {
+            List<Branch> branches = new List<Branch>();
+            string path = fileManager.getPath() + ".mojgit\\main.json";
+
+            Branch[] b = JsonSerializer.Deserialize<Branch[]>(File.ReadAllText(path));
+            branches = b.ToList<Branch>();
+
+            int branchIndex = Array.FindIndex(branches.ToArray(), br => br.name == name);
+
+            return (branches, branchIndex);
+        }
     }
 }

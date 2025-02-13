@@ -107,14 +107,16 @@ namespace mojgit
                     }
                     else if (line2 == null)
                     {
-                        // linia usunięta z file1
-                        changesList.Add(new ChangedLines { line = line1, number = i + 1, added = true });
+                        if (!file2_lines.Any(item => item == line1))
+                            changesList.Add(new ChangedLines { line = line1, number = i + 1, added = true });
                     }
                     else
                     {
                         // linie się różnią – można dodać obie zmiany lub zaznaczyć, że linia została zmodyfikowana
-                        changesList.Add(new ChangedLines { line = line1, number = i + 1, added = true });
-                        changesList.Add(new ChangedLines { line = line2, number = i + 1, added = false });
+                        if (!file2_lines.Any(item => item == line1))
+                            changesList.Add(new ChangedLines { line = line1, number = i + 1, added = true });
+                        if(!file1_lines.Any(item => item == line2))
+                            changesList.Add(new ChangedLines { line = line2, number = i + 1, added = false });
                     }
                 }
             }
@@ -129,6 +131,7 @@ namespace mojgit
             List<string> list = fileManager.getPossiblyChangedFiles(fileManager.getPath(), fileManager.getPath() + ".mojgit\\legacy_code\\");
             for(int i = 0; i <= list.Count-1; i+=2)
             {
+                //Pierwszy plik jest zmieniony, drugi oryginalny
                 CompareFiles(list[i], list[i + 1]);
             }
             CompareCommits(branch);

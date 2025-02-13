@@ -53,12 +53,8 @@ namespace mojgit
                         }
                     }
                     else
-                    {
-                        if (index >= 0 && index < result.Count)
-                        {
-                            result.RemoveAt(index);
-                            Console.WriteLine("REMOVED: " + change.line);
-                        }
+                    {                        
+                        result.Remove(change.line);
                     }
                 }
 

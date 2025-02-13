@@ -12,16 +12,16 @@ namespace mojgit
             //ToDo Dynamiczne zmienianie śćieżki przez odpalanie programu w danych ścieżkach
             FileManager fileManager = new FileManager(path);
             //fileManager.CopyDirectory(path, path + ".mojgit\\legacy_code");
-            //Brancher brancher = new Brancher(fileManager);
-            //brancher.createBranch("main");
-            //Adder adder = new Adder(fileManager);
-            //adder.CompareDirectories("main");
-            //adder.DisplayChanges();
-            //adder.ParseToJSON(path);
+            Brancher brancher = new Brancher(fileManager);
+            brancher.createBranch("main");
+            Adder adder = new Adder(fileManager);
+            adder.CompareDirectories("main");
+            adder.DisplayChanges();
+            adder.ParseToJSON(path);
             //adder.DisplayChanges();
 
-            //Commiter commiter = new Commiter(fileManager);
-            //commiter.commit("main", "ZOBACZMY", "1.0");
+            Commiter commiter = new Commiter(fileManager);
+            commiter.commit("main", "ZOBACZMY", "1.0");
 
             Backer backer = new Backer(fileManager);
             

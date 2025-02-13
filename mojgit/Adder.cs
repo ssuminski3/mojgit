@@ -21,34 +21,48 @@ namespace mojgit
         private FileChanges CompareFileChanges(FileChanges f1, FileChanges f2)
         {
             FileChanges ffinal = new FileChanges();
-            List<ChangedLines> fileChanges = new List<ChangedLines>();
-            if(f1.fileName == f2.fileName)
+
+            if (f1.fileName == f2.fileName)
             {
-                for(int i = 0; i <= f1.changes.Length-1; i++)
+                List<ChangedLines> fileChanges = new List<ChangedLines>();
+
+                if (f1.changes != null && f2.changes != null)
                 {
-                    if (!f2.changes.Any(item => f1.changes[i].Equals(item)))
+                    foreach (ChangedLines change in f1.changes)
                     {
-                        fileChanges.Add(f1.changes[i]);
+                        int existsInF2 = f2.changes.ToList().FindIndex(c => c.Equals(change));
+                        if (existsInF2 == -1)
+                        {
+                            fileChanges.Add(change);
+                        }
+                    }
+                    foreach (ChangedLines change in f2.changes)
+                    {
+                        int existsInF1 = f1.changes.ToList().FindIndex(c => c.Equals(change));
+                        if (existsInF1 == -1)
+                        {
+                            fileChanges.Add(new ChangedLines
+                            {
+                                line = change.line,
+                                number = change.number,
+                                added = false
+                            });
+                        }
                     }
                 }
-                for (int i = 0; i <= f2.changes.Length - 1; i++)
-                {
-                    if (!f1.changes.Any(item => f2.changes[i].Equals(item)))
-                    {
-                        f2.changes[i].added = !f2.changes[i].added;
-                        fileChanges.Add(f2.changes[i]);
-                    }
-                }
-                if(fileChanges.Count > 0)
+
+                if (fileChanges.Count > 0)
                 {
                     ffinal.fileName = f1.fileName;
                     ffinal.changes = fileChanges.ToArray();
                 }
             }
+
             return ffinal;
         }
 
-        private List<FileChanges> CompareCommits(string branchName)
+
+        private void CompareCommits(string branchName)
         {
             List<Branch> branches = new List<Branch>();
             List<FileChanges> ch = new List<FileChanges>();
@@ -57,59 +71,67 @@ namespace mojgit
 
             Brancher brancher = new Brancher(fileManager);
             (branches, branchIndex) = brancher.findBranch(branchName);
-
-            foreach(Commit commit in branches[branchIndex].commits)
-            {
-                foreach(FileChanges fileChanges in commit.fileChanges)
+            if(branches[branchIndex].commits != null)
+                foreach(Commit commit in branches[branchIndex].commits)
                 {
-                    FileChanges f = changes.Find(item => item.fileName == fileChanges.fileName);
-                    if(f != null)
-                        ch.Add(CompareFileChanges(f, fileChanges));
+                    foreach(FileChanges fileChanges in commit.fileChanges)
+                    {
+                        FileChanges f = changes.Find(item => item.fileName == fileChanges.fileName);
+                        if(f != null)
+                            ch.Add(CompareFileChanges(f, fileChanges));
+                    }
                 }
-            }
-            return ch;
+            if (ch.Count() > 0)
+                changes = ch;
         }
 
         private void CompareFiles(string file1, string file2)
         {
-            List<ChangedLines> change = new List<ChangedLines>();
             string[] file1_lines = File.ReadAllLines(file1);
             string[] file2_lines = File.ReadAllLines(file2);
+            int maxLines = Math.Max(file1_lines.Length, file2_lines.Length);
+            List<ChangedLines> changesList = new List<ChangedLines>();
 
-            HashSet<string> file2_set = new HashSet<string>(file2_lines);
-            HashSet<string> file1_set = new HashSet<string>(file1_lines);
-
-            for (int i = 0; i < file2_lines.Length; i++)
+            for (int i = 0; i < maxLines; i++)
             {
-                if (!file1_set.Contains(file2_lines[i]))
+                string line1 = i < file1_lines.Length ? file1_lines[i] : null;
+                string line2 = i < file2_lines.Length ? file2_lines[i] : null;
+
+                if (line1 != line2)
                 {
-                    change.Add(new ChangedLines { line = file2_lines[i], number = i + 1, added = false });
+                    // Możesz tutaj określić logikę, która rozróżnia dodane/usunięte linie
+                    if (line1 == null)
+                    {
+                        // linia dodana w file2
+                        changesList.Add(new ChangedLines { line = line2, number = i + 1, added = false });
+                    }
+                    else if (line2 == null)
+                    {
+                        // linia usunięta z file1
+                        changesList.Add(new ChangedLines { line = line1, number = i + 1, added = true });
+                    }
+                    else
+                    {
+                        // linie się różnią – można dodać obie zmiany lub zaznaczyć, że linia została zmodyfikowana
+                        changesList.Add(new ChangedLines { line = line1, number = i + 1, added = true });
+                        changesList.Add(new ChangedLines { line = line2, number = i + 1, added = false });
+                    }
                 }
             }
 
-            for (int i = 0; i < file1_lines.Length; i++)
-            {
-                if (!file2_set.Contains(file1_lines[i]))
-                {
-                    change.Add(new ChangedLines { line = file1_lines[i], number = i + 1, added = true });
-                }
-            }
-
-            if(change.Count > 0)
-                changes.Add(new FileChanges { fileName = file1, changes = change.ToArray() });
+            if (changesList.Count > 0)
+                changes.Add(new FileChanges { fileName = file1.Replace(fileManager.getPath(), ""), changes = changesList.ToArray() });
         }
 
         public void CompareDirectories(string branch)
         { 
 
             List<string> list = fileManager.getPossiblyChangedFiles(fileManager.getPath(), fileManager.getPath() + ".mojgit\\legacy_code\\");
-        
             for(int i = 0; i <= list.Count-1; i+=2)
             {
                 CompareFiles(list[i], list[i + 1]);
             }
-            changes = CompareCommits(branch);
-            
+            CompareCommits(branch);
         }
 
 
@@ -129,17 +151,26 @@ namespace mojgit
     
         public void ParseToJSON(string path)
         {
-            Console.WriteLine(changes[0].changes.ToString());
-            FileChanges[] files = changes.ToArray();
-            Console.WriteLine(files.ToString());
-            var options = new JsonSerializerOptions
+            Console.WriteLine(changes.ToString());
+            if (changes.Count() > 0)
             {
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            };
-            string json = JsonSerializer.Serialize(files, options);
-            Console.WriteLine(json);
-            File.WriteAllText(path + ".mojgit\\add.json", json);
-            Console.WriteLine("Added");
+                if (changes[0].changes != null)
+                {
+                    Console.WriteLine(changes[0].changes.ToString());
+                    FileChanges[] files = changes.ToArray();
+                    Console.WriteLine(files.ToString());
+                    var options = new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    };
+                    string json = JsonSerializer.Serialize(files, options);
+                    Console.WriteLine(json);
+                    File.WriteAllText(path + ".mojgit\\add.json", json);
+                    Console.WriteLine("Added");
+                }
+            }
+            else
+                Console.WriteLine("Brak zmian");
         }
 
     }

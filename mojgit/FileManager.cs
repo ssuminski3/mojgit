@@ -16,7 +16,7 @@ namespace mojgit
             this.path = path;
         }
         
-        private void CopyDirectory(string sourceDir, string destinationDir)
+        public void CopyDirectory(string sourceDir, string destinationDir, string[] list = null)
         {
             //Console.WriteLine(sourceDir);
             if (sourceDir == path + ".mojgit")
@@ -29,14 +29,26 @@ namespace mojgit
 
             foreach (string file in Directory.GetFiles(sourceDir))
             {
+                Console.WriteLine("COPY: " + file);
                 try
                 {
                     string destFile = Path.Combine(destinationDir, Path.GetFileName(file));
-                    File.Copy(file, destFile, false);
+                    if (list != null)
+                    {
+                        if (list.Any(item => item == file))
+                        {
+                            File.Copy(file, destFile, false);
+                        }
+                    }
+                    else
+                    {
+                        File.Copy(file, destFile, false);
+                        Console.WriteLine("OKEJ");
+                    }
                 }
                 catch
                 {
-                    //Console.WriteLine("Plik istnieje");
+                    Console.WriteLine("Plik istnieje");
                 }
             }
 
@@ -92,7 +104,17 @@ namespace mojgit
 
             foreach(string f in Directory.GetFiles(p))
             {
-                files.Add(f);
+                
+                List<string> file = f.Split("\\").ToList<string>();
+                if (file.Contains(".mojgit"))
+                    continue;
+                string filename = file[file.Count() - 1];
+                Console.WriteLine("CO: " + filename);
+                file.Remove(filename);
+                file.Add(".mojgit\\legacy_code\\" + filename);
+                string path = string.Join("\\", file);
+                Console.WriteLine("PATH: " + path);
+                files.Add(path);
             }
 
             foreach(string d in Directory.GetDirectories(p))
